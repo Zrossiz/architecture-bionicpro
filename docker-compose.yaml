@@ -40,3 +40,16 @@ services:
       REACT_APP_KEYCLOAK_URL: http://localhost:8080
       REACT_APP_KEYCLOAK_REALM: reports-realm
       REACT_APP_KEYCLOAK_CLIENT_ID: reports-frontend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports: 
+      - "8000:8000"
+    environment:
+      ADDRESS: :8000
+      API_APP_KEYCLOAK_INTERNAL_URL: http://keycloak:8080
+      API_APP_KEYCLOAK_REALMS_URL: http://localhost:8080/realms/reports-realm
+      API_APP_KEYCLOAK_REALM: reports-realm 
+    depends_on:
+      - keycloak
