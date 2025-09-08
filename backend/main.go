@@ -12,7 +12,6 @@ import (
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
-	"github.com/robfig/cron/v3"
 )
 
 type JWTHeader struct {
@@ -41,9 +40,6 @@ type JWK struct {
 }
 
 func main() {
-	c := cron.New(cron.WithSeconds())
-	c.AddFunc("@every 1h30m", startETL)
-
 	addr := os.Getenv("ADDRESS")
 	if addr == "" {
 		panic(fmt.Errorf("address is empty"))
@@ -73,6 +69,8 @@ func corsMiddleware(next http.Handler) http.Handler {
 }
 
 func getReport(rw http.ResponseWriter, r *http.Request) {
+	// Собирает данные из абстрактной olap db - clickhouse
+	// В нее уже абстрактный dag airflow положил абстрактный данные
 	_, err := verifyJWT(rw, r)
 	if err != nil {
 		http.Error(rw, "Unauthorized", http.StatusUnauthorized)
@@ -93,8 +91,6 @@ func getReport(rw http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(rw).Encode(data)
 	rw.WriteHeader(http.StatusOK)
 }
-
-func startETL() {}
 
 func verifyJWT(rw http.ResponseWriter, r *http.Request) (*JWTPayload, error) {
 	authHeader := r.Header.Get("Authorization")
