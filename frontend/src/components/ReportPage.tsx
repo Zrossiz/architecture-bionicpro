@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
 import { useKeycloak } from '@react-keycloak/web';
 
+interface ReportItem {
+  id: string;
+  title: string;
+  description: string;
+}
+
 const ReportPage: React.FC = () => {
   const { keycloak, initialized } = useKeycloak();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [report, setReport] = useState<ReportItem[]>([])
 
   const downloadReport = async () => {
     if (!keycloak?.token) {
@@ -21,6 +28,17 @@ const ReportPage: React.FC = () => {
           'Authorization': `Bearer ${keycloak.token}`
         }
       });
+
+      if (response.status == 200) {
+        try {
+          //@ts-ignore
+          const parsedBody: ReportItem[] = await response.json();
+          setReport(parsedBody)
+
+        } catch (err) {
+          console.log(err)
+        }
+      }
 
       
     } catch (err) {
@@ -61,6 +79,21 @@ const ReportPage: React.FC = () => {
         >
           {loading ? 'Generating Report...' : 'Download Report'}
         </button>
+
+        {report.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {report.map((item) => (
+              <div
+                key={item.id}
+                className="p-4 border rounded-lg shadow-sm hover:shadow-md transition"
+              >
+                <h2 className="font-semibold text-lg mb-2">{item.title}</h2>
+                <p className="text-gray-700">{item.description}</p>
+                <p className="text-sm text-gray-400 mt-2">ID: {item.id}</p>
+              </div>
+            ))}
+          </div>
+        )}
 
         {error && (
           <div className="mt-4 p-4 bg-red-100 text-red-700 rounded">
